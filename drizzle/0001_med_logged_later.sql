@@ -1,0 +1,1 @@
+ALTER TABLE `med_logs` ADD `logged_later` integer DEFAULT false NOT NULL;

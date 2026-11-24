@@ -125,6 +125,22 @@ export const wellbeing = sqliteTable(
   (t) => [index("wellbeing_user_time").on(t.userId, t.recordedAt)],
 );
 
+export const workouts = sqliteTable(
+  "workouts",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    performedAt: integer("performed_at", { mode: "timestamp_ms" }).notNull(),
+    kind: text("kind").notNull(), // see WORKOUT_KINDS
+    durationMin: integer("duration_min"),
+    effort: integer("effort"), // 1..5
+    notes: text("notes"),
+  },
+  (t) => [index("workouts_user_time").on(t.userId, t.performedAt)],
+);
+
 export const medications = sqliteTable("medications", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userId: integer("user_id")

@@ -8,6 +8,7 @@ import {
   medLogs,
   weights,
   wellbeing,
+  workouts,
 } from "@/db";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -30,6 +31,7 @@ export async function GET() {
     bloodPressures: d.select().from(bloodPressures).where(eq(bloodPressures.userId, user.id)).all(),
     measurements: d.select().from(measurements).where(eq(measurements.userId, user.id)).all(),
     wellbeing: d.select().from(wellbeing).where(eq(wellbeing.userId, user.id)).all(),
+    workouts: d.select().from(workouts).where(eq(workouts.userId, user.id)).all(),
     medications: d.select().from(medications).where(eq(medications.userId, user.id)).all(),
     medicationLog: d.select().from(medLogs).where(eq(medLogs.userId, user.id)).all(),
   };

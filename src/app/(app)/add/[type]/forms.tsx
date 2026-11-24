@@ -9,12 +9,14 @@ import {
   addMeasurements,
   addWeight,
   addWellbeing,
+  addWorkout,
 } from "@/app/actions/entries";
 import type { FormState } from "@/app/actions/types";
 import { useI18n } from "@/components/i18n-provider";
 import { FormMessage } from "@/components/auth-bits";
 import { DOSES, SITES } from "@/lib/injection";
 import { SYMPTOMS } from "@/lib/health";
+import { WORKOUT_KINDS, type WorkoutKind } from "@/lib/workout";
 import { fmtNumber, type DictKey } from "@/lib/i18n";
 
 type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
@@ -201,6 +203,50 @@ export function MeasurementsForm({ nowLocal }: { nowLocal: string }) {
         {fields.map((f, i) => (
           <NumberField key={f} name={f} label={t(f)} unit={t("cm")} autoFocus={i === 0} />
         ))}
+      </div>
+    </EntryForm>
+  );
+}
+
+export function WorkoutForm({ nowLocal, lastKind }: { nowLocal: string; lastKind: WorkoutKind | null }) {
+  const { t } = useI18n();
+  const [kind, setKind] = useState<WorkoutKind | null>(null);
+  const [effort, setEffort] = useState<number | null>(null);
+  return (
+    <EntryForm action={addWorkout} nowLocal={nowLocal}>
+      <div>
+        <span className="label">{t("workout_type")}</span>
+        <ChoiceChips
+          name="kind"
+          cols={2}
+          value={kind}
+          onChange={setKind}
+          options={WORKOUT_KINDS.map((k) => ({
+            value: k,
+            label: (
+              <span>
+                {t(`workout_${k}` as DictKey)}
+                {k === lastKind && <span className="ms-1 text-xs text-muted">· {t("last_time")}</span>}
+              </span>
+            ),
+          }))}
+        />
+      </div>
+      <NumberField name="duration" label={`${t("duration")} (${t("optional")})`} unit={t("min")} integer />
+      <div>
+        <span className="label">
+          {t("effort")} <span className="font-normal">({t("optional")})</span>
+        </span>
+        <ChoiceChips
+          name="effort"
+          cols={5}
+          value={effort}
+          onChange={(v) => setEffort(v === effort ? null : v)}
+          options={[1, 2, 3, 4, 5].map((v) => ({
+            value: v,
+            label: <span className="text-[11px] leading-tight">{t(`effort_${v}` as DictKey)}</span>,
+          }))}
+        />
       </div>
     </EntryForm>
   );

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { PageHeader } from "@/components/page-header";
-import { HeartIcon, ScaleIcon, SmileIcon, SyringeIcon, TapeIcon } from "@/components/icons";
+import { DumbbellIcon, HeartIcon, ScaleIcon, SmileIcon, SyringeIcon, TapeIcon } from "@/components/icons";
 
 export default async function AddPage() {
   const user = await requireUser();
@@ -14,6 +14,7 @@ export default async function AddPage() {
     { href: "/add/weight", label: t("weight"), Icon: ScaleIcon },
     { href: "/add/bp", label: t("blood_pressure"), Icon: HeartIcon },
     { href: "/add/measurements", label: t("measurements"), Icon: TapeIcon },
+    { href: "/add/workout", label: t("workout"), Icon: DumbbellIcon },
     { href: "/add/wellbeing", label: t("wellbeing"), Icon: SmileIcon },
   ];
   return (

@@ -10,12 +10,14 @@ import {
   medLogsBetween,
   recentInjections,
   userMeds,
+  workoutsFrom,
 } from "@/lib/data";
+import { STRENGTH_KINDS } from "@/lib/workout";
 import { shotStatus } from "@/lib/injection";
 import { BP_LABEL, BP_TONE, bpCategory } from "@/lib/health";
-import { addDaysToKey, localDateKey, localHour } from "@/lib/time";
+import { addDaysToKey, fromLocalInput, localDateKey, localHour } from "@/lib/time";
 import { MedChecklist, type MedRow } from "@/components/med-checklist";
-import { HeartIcon, ScaleIcon, SmileIcon, SyringeIcon, TapeIcon } from "@/components/icons";
+import { DumbbellIcon, HeartIcon, ScaleIcon, SmileIcon, SyringeIcon, TapeIcon } from "@/components/icons";
 
 export default async function TodayPage() {
   const user = await requireUser();
@@ -57,6 +59,12 @@ export default async function TodayPage() {
   const current = latestWeight(user.id);
   const bp = latestBp(user.id);
   const waist = latestWaist(user.id);
+  // Workouts over the same 7 local days as the medication strip.
+  const weekStart = fromLocalInput(`${weekKeys[0]}T00:00`, tz) ?? new Date(now.getTime() - 7 * 86_400_000);
+  const weekWorkouts = workoutsFrom(user.id, weekStart);
+  const strength = weekWorkouts.filter((w) => STRENGTH_KINDS.includes(w.kind)).length;
+  const cardio = weekWorkouts.length - strength;
+
   const diff = start && current ? current.weightKg - start.weightKg : null;
 
   return (
@@ -159,6 +167,15 @@ export default async function TodayPage() {
               <span className="ms-1 text-sm font-normal text-muted">{t("cm")}</span>
             </p>
           </Link>
+          <Link href="/add/workout" className="card col-span-2 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm text-muted">{t("workouts_7d")}</p>
+              <p className="text-sm text-muted">
+                {t("strength")} {fmtNumber(locale, strength)} · {t("workout_cardio")} {fmtNumber(locale, cardio)}
+              </p>
+            </div>
+            <p className="text-2xl font-bold">{fmtNumber(locale, weekWorkouts.length)}</p>
+          </Link>
         </div>
       </section>
 
@@ -169,15 +186,16 @@ export default async function TodayPage() {
           <QuickAdd href="/add/bp" label={t("blood_pressure")} Icon={HeartIcon} />
           <QuickAdd href="/add/measurements" label={t("measurements")} Icon={TapeIcon} />
           <QuickAdd href="/add/wellbeing" label={t("wellbeing")} Icon={SmileIcon} />
+          <QuickAdd href="/add/workout" label={t("workout")} Icon={DumbbellIcon} wide />
         </div>
       </section>
     </div>
   );
 }
 
-function QuickAdd({ href, label, Icon }: { href: string; label: string; Icon: typeof ScaleIcon }) {
+function QuickAdd({ href, label, Icon, wide }: { href: string; label: string; Icon: typeof ScaleIcon; wide?: boolean }) {
   return (
-    <Link href={href} className="card flex items-center gap-3 font-medium active:scale-[0.98]">
+    <Link href={href} className={`card flex items-center gap-3 font-medium active:scale-[0.98] ${wide ? "col-span-2" : ""}`}>
       <span className="text-accent">
         <Icon />
       </span>

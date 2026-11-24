@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
-import { latestWeight, recentInjections } from "@/lib/data";
+import { latestWeight, latestWorkout, recentInjections } from "@/lib/data";
+import { isWorkoutKind } from "@/lib/workout";
 import { suggestSite } from "@/lib/injection";
 import { calendarDaysBetween, toLocalInput } from "@/lib/time";
 import { PageHeader } from "@/components/page-header";
-import { BloodPressureForm, InjectionForm, MeasurementsForm, WeightForm, WellbeingForm } from "./forms";
+import { BloodPressureForm, InjectionForm, MeasurementsForm, WeightForm, WellbeingForm, WorkoutForm } from "./forms";
 
 export default async function AddEntryPage({ params }: PageProps<"/add/[type]">) {
   const { type } = await params;
@@ -59,6 +60,15 @@ export default async function AddEntryPage({ params }: PageProps<"/add/[type]">)
         <>
           <PageHeader title={t("log_wellbeing")} back="/add" />
           <WellbeingForm nowLocal={nowLocal} dayLabel={dayLabel} />
+        </>
+      );
+    }
+    case "workout": {
+      const lastKind = latestWorkout(user.id)?.kind ?? "";
+      return (
+        <>
+          <PageHeader title={t("log_workout")} back="/add" />
+          <WorkoutForm nowLocal={nowLocal} lastKind={isWorkoutKind(lastKind) ? lastKind : null} />
         </>
       );
     }

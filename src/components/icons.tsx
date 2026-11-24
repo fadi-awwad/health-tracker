@@ -50,6 +50,9 @@ export const SmileIcon = (p: SVGProps<SVGSVGElement>) => (
 export const PillIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}><rect x="2.5" y="8" width="19" height="8" rx="4" transform="rotate(-45 12 12)" /><path d="m8.5 8.5 7 7" /></svg>
 );
+export const DumbbellIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}><path d="M8 12h8M5 8v8M8 6v12M16 6v12M19 8v8M3 10.5v3M21 10.5v3" /></svg>
+);
 export const CheckIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
 );

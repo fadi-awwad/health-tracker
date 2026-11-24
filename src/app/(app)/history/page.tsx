@@ -7,7 +7,7 @@ import { BP_LABEL, BP_TONE, bpCategory } from "@/lib/health";
 import { calendarDaysBetween, localDateKey } from "@/lib/time";
 import { PageHeader } from "@/components/page-header";
 import { DeleteButton } from "@/components/delete-button";
-import { HeartIcon, PillIcon, ScaleIcon, SmileIcon, SyringeIcon, TapeIcon } from "@/components/icons";
+import { DumbbellIcon, HeartIcon, PillIcon, ScaleIcon, SmileIcon, SyringeIcon, TapeIcon } from "@/components/icons";
 
 const PAGE = 60;
 const ICONS = {
@@ -16,6 +16,7 @@ const ICONS = {
   bp: HeartIcon,
   measurements: TapeIcon,
   wellbeing: SmileIcon,
+  workout: DumbbellIcon,
   med: PillIcon,
 };
 
@@ -72,6 +73,14 @@ export default async function HistoryPage({ searchParams }: PageProps<"/history"
         return {
           title: it.timesPerDay > 1 ? `${it.name} · ${t("dose_n", { n: it.slot + 1 })}` : it.name,
           detail: [it.dose, it.loggedLater && t("logged_later")].filter(Boolean).join(" · ") || undefined,
+        };
+      case "workout":
+        return {
+          title: [
+            t(`workout_${it.workoutKind}` as DictKey),
+            it.durationMin ? `${n(it.durationMin)} ${t("min")}` : null,
+          ].filter(Boolean).join(" · "),
+          detail: it.effort ? `${t("effort")}: ${t(`effort_${it.effort}` as DictKey)}` : undefined,
         };
       case "wellbeing": {
         const sym = Object.entries(it.symptoms)

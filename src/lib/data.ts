@@ -9,6 +9,7 @@ import {
   medLogs,
   weights,
   wellbeing,
+  workouts,
 } from "@/db";
 
 // Every query here is scoped by userId; callers get the id from requireUser().
@@ -120,12 +121,32 @@ export function medLogsBetween(userId: number, fromKey: string, toKey: string) {
     .all();
 }
 
+export function latestWorkout(userId: number) {
+  return db()
+    .select()
+    .from(workouts)
+    .where(eq(workouts.userId, userId))
+    .orderBy(desc(workouts.performedAt))
+    .limit(1)
+    .get();
+}
+
+export function workoutsFrom(userId: number, since: Date) {
+  return db()
+    .select()
+    .from(workouts)
+    .where(and(eq(workouts.userId, userId), gte(workouts.performedAt, since)))
+    .orderBy(asc(workouts.performedAt))
+    .all();
+}
+
 export type HistoryItem =
   | { kind: "injection"; id: number; at: Date; doseMg: number; site: string | null; notes: string | null }
   | { kind: "weight"; id: number; at: Date; weightKg: number; notes: string | null }
   | { kind: "bp"; id: number; at: Date; systolic: number; diastolic: number; pulse: number | null; notes: string | null }
   | { kind: "measurements"; id: number; at: Date; values: Partial<Record<MeasureKey, number>>; notes: string | null }
   | { kind: "med"; id: number; at: Date; name: string; dose: string | null; slot: number; timesPerDay: number; loggedLater: boolean; notes: null }
+  | { kind: "workout"; id: number; at: Date; workoutKind: string; durationMin: number | null; effort: number | null; notes: string | null }
   | { kind: "wellbeing"; id: number; at: Date; overall: number; energy: number | null; appetite: number | null; symptoms: Record<string, number>; notes: string | null };
 
 export const MEASURE_KEYS = ["waist", "hips", "chest", "neck", "arm", "thigh"] as const;
@@ -163,6 +184,10 @@ export function history(userId: number, before: Date, limit: number): HistoryIte
       .where(and(eq(wellbeing.userId, userId), lt(wellbeing.recordedAt, before)))
       .orderBy(desc(wellbeing.recordedAt)).limit(limit).all()
       .map((r) => ({ kind: "wellbeing" as const, id: r.id, at: r.recordedAt, overall: r.overall, energy: r.energy, appetite: r.appetite, symptoms: r.symptoms, notes: r.notes })),
+    ...d.select().from(workouts)
+      .where(and(eq(workouts.userId, userId), lt(workouts.performedAt, before)))
+      .orderBy(desc(workouts.performedAt)).limit(limit).all()
+      .map((r) => ({ kind: "workout" as const, id: r.id, at: r.performedAt, workoutKind: r.kind, durationMin: r.durationMin, effort: r.effort, notes: r.notes })),
     ...d.select({ log: medLogs, med: medications }).from(medLogs)
       .innerJoin(medications, eq(medications.id, medLogs.medicationId))
       .where(and(eq(medLogs.userId, userId), lt(medLogs.takenAt, before)))

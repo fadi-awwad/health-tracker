@@ -12,10 +12,12 @@ import {
   medLogs,
   weights,
   wellbeing,
+  workouts,
 } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { DOSES, SITES } from "@/lib/injection";
 import { SYMPTOMS } from "@/lib/health";
+import { isWorkoutKind } from "@/lib/workout";
 import { MEASURE_KEYS } from "@/lib/data";
 import { addDaysToKey, fromLocalInput, localDateKey } from "@/lib/time";
 import { inRange, parseNum, text } from "@/lib/validation";
@@ -127,12 +129,34 @@ export async function addWellbeing(_prev: FormState, fd: FormData): Promise<Form
   done();
 }
 
+export async function addWorkout(_prev: FormState, fd: FormData): Promise<FormState> {
+  const user = await requireUser();
+  const kind = String(fd.get("kind") ?? "");
+  if (!isWorkoutKind(kind)) return { error: "workout_kind_required" };
+  const minutes = parseNum(fd.get("duration"));
+  if (Number.isNaN(minutes) || !inRange(minutes, 1, 600)) return { error: "invalid_number" };
+  const effort = parseNum(fd.get("effort"));
+  db()
+    .insert(workouts)
+    .values({
+      userId: user.id,
+      performedAt: when(fd, user.timezone),
+      kind,
+      durationMin: minutes === null ? null : Math.round(minutes),
+      effort: effort !== null && effort >= 1 && effort <= 5 ? Math.round(effort) : null,
+      notes: text(fd.get("notes")),
+    })
+    .run();
+  done();
+}
+
 const TABLES = {
   injection: injections,
   weight: weights,
   bp: bloodPressures,
   measurements,
   wellbeing,
+  workout: workouts,
   med: medLogs,
 } as const;
 
